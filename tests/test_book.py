@@ -9,9 +9,10 @@ from setup import (
 )
 from db import get_db
 from sqlmodel import create_engine, Session, SQLModel, select
-from models.models import BookCreate, BookUpdate, Book
+from models.models import BookCreate, Book
 import json
 import copy as cp
+from routers.book import auth
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -49,6 +50,7 @@ def client(session):
             session.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[auth.verify] = lambda: True
 
     yield TestClient(app)
 

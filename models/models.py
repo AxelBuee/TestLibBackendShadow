@@ -59,6 +59,7 @@ class BookUpdate(SQLModel):
 
 
 class BookReadWithAuthors(BookRead):
+    copies: Optional[List["CopyRead"]] = []
     authors: List["AuthorRead"]
 
 
@@ -100,7 +101,7 @@ class AuthorUpdate(SQLModel):
 
 
 class AuthorReadWithBooks(AuthorRead):
-    books: Optional[List["BookRead"]] = None
+    books: Optional[List["BookRead"]] = []
 
 
 ########### Copy ###########
@@ -137,7 +138,7 @@ class CopyUpdate(SQLModel):
 
 
 class CopyReadWithCheckouts(CopyRead):
-    checkouts: Optional[List["CheckoutRead"]] = None
+    checkouts: Optional[List["CheckoutRead"]] = []
 
 
 ########### Checkout ###########
@@ -222,4 +223,4 @@ class MemberUpdate(SQLModel):
 
 
 class MemberReadWithCheckouts(MemberRead):
-    checkouts: Optional[List["CheckoutRead"]] = None
+    member_checkouts: Optional[List["CheckoutRead"]] = []

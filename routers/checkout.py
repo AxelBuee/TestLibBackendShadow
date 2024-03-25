@@ -8,12 +8,15 @@ from models.models import (
     Copy,
     Member,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlmodel import Session, select
 from db import get_db
 from datetime import date
+from utils import VerifyToken
 
-router = APIRouter()
+
+auth = VerifyToken()
+router = APIRouter(dependencies=[Security(auth.verify, scopes=['write:author'])])
 
 
 @router.get("/checkouts/", response_model=List[CheckoutRead])
@@ -47,6 +50,11 @@ async def create_checkout(checkout: CheckoutCreate, session: Session = Depends(g
     if not member:
         raise HTTPException(
             status_code=404, detail=f"Member id {checkout.member_id} not found"
+        )
+    elif member.membership_expiration < date.today():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Member id {checkout.member_id} membership expired",
         )
     db_checkout = Checkout.model_validate(checkout)
     copy_item.is_available = False

@@ -1,6 +1,6 @@
 from models.models import Book, Author, Member, Copy, Checkout
 from sqlmodel import Session, select
-from datetime import date
+from datetime import date, timedelta
 
 
 def create_authors_and_books(engine):
@@ -47,10 +47,6 @@ def create_authors_and_books(engine):
         session.add(lonely_book)
         session.commit()
 
-        session.refresh(deadpond)
-        session.refresh(rusty_man)
-        session.refresh(lonely_book)
-
 
 def create_members(engine):
     with Session(engine) as session:
@@ -70,10 +66,20 @@ def create_members(engine):
             age=10,
             birthdate=date(2014, 1, 1),
             city="New York",
+            membership_expiration=date.today() + timedelta(days=1),
+        )
+        lonely = Member(
+            auth0_id="bb531_aa9a8_773bc",
+            first_name="Lonely",
+            last_name="Member",
+            age=20,
+            birthdate=date(2014, 1, 1),
+            city="Warsaw",
             membership_expiration=date(2025, 1, 1),
         )
         session.add(john)
         session.add(jane)
+        session.add(lonely)
         session.commit()
 
 
@@ -106,10 +112,6 @@ def create_copies(engine):
         session.add(rusty_man_copy)
         session.add(lonely_copy)
         session.commit()
-
-        session.refresh(deadpond_copy)
-        session.refresh(rusty_man_copy)
-        session.refresh(lonely_copy)
 
 
 def create_checkouts(engine):

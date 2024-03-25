@@ -6,11 +6,14 @@ from models.models import (
     AuthorUpdate,
     AuthorReadWithBooks,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlmodel import Session, select
 from db import get_db
+from utils import VerifyToken
 
-router = APIRouter()
+auth = VerifyToken()
+
+router = APIRouter(dependencies=[Security(auth.verify, scopes=['write:author'])])
 
 
 @router.get("/authors/", response_model=List[AuthorRead])

@@ -9,10 +9,11 @@ from setup import (
 )
 from db import get_db
 from sqlmodel import create_engine, Session, SQLModel, select
-from models.models import CheckoutCreate, CheckoutUpdate, Checkout, Book, Copy
+from models.models import CheckoutCreate, Checkout, Copy
 import json
 import copy as cp
 from datetime import date, timedelta
+from routers.checkout import auth
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -50,6 +51,7 @@ def client(session):
             session.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[auth.verify] = lambda: True
 
     yield TestClient(app)
 
@@ -85,11 +87,13 @@ def test_get_checkout_success(client):
 
 
 def test_create_checkout_success(client, session: Session):
+    member_id = 2
+    copy_id = 1
     new_checkout = CheckoutCreate(
         checkout_date=date.today(),
         expected_return_date=date.today() + timedelta(days=7),
-        member_id=1,
-        copy_id=1,
+        member_id=member_id,
+        copy_id=copy_id,
     )
     response = client.post(
         "/checkout/", json=json.loads(new_checkout.model_dump_json())
@@ -98,26 +102,22 @@ def test_create_checkout_success(client, session: Session):
     assert response.json() == {
         "checkout_date": date.today().isoformat(),
         "expected_return_date": (date.today() + timedelta(days=7)).isoformat(),
-        "member_id": 1,
-        "copy_id": 1,
+        "member_id": member_id,
+        "copy_id": copy_id,
         "id": 3,
         "returned_date": None,
     }
 
     checkout: Checkout = session.exec(
         select(Checkout)
-        .filter(Checkout.member_id == 1)
-        .filter(Checkout.copy_id == 1)
+        .filter(Checkout.member_id == member_id)
+        .filter(Checkout.copy_id == copy_id)
         .filter(Checkout.checkout_date == date.today())
     ).one()
     assert checkout.current_owner.id == new_checkout.member_id
     assert checkout.checkout_date == new_checkout.checkout_date
     assert checkout.expected_return_date == new_checkout.expected_return_date
     assert checkout.copy_item.id == new_checkout.copy_id
-
-
-# # TODO: Add test for trying to create a checkout with a non-existent book_id
-# # TODO: Add test for trying to create a book without author.
 
 
 def test_update_checkout_success(client, session):
@@ -171,9 +171,23 @@ def test_create_checkout_copy_not_available(client, session: Session):
     response = client.post(
         "/checkout/", json=json.loads(new_checkout.model_dump_json())
     )
-    print(response.text)
     assert response.status_code == 404
     assert response.json() == {"detail": "Copy id 2 is not available"}
+    
+    
+def test_create_checkout_membership_expired(client, session: Session):
+    member_id = 1
+    new_checkout = CheckoutCreate(
+        checkout_date=date.today(),
+        expected_return_date=date.today() + timedelta(days=7),
+        member_id=member_id,
+        copy_id=1,
+    )
+    response = client.post(
+        "/checkout/", json=json.loads(new_checkout.model_dump_json())
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": f"Member id {member_id} membership expired"}
 
 
 def test_delete_checkout_not_returned(client, session):

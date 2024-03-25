@@ -11,7 +11,7 @@ from setup import (
 )
 
 load_dotenv()
-app = FastAPI(title="OurLove API")
+app = FastAPI(title="Shadow library API")
 get_token()
 
 
@@ -20,11 +20,6 @@ app.include_router(book.router, tags=["Book"])
 app.include_router(copy.router, tags=["Copy"])
 app.include_router(checkout.router, tags=["Checkout"])
 app.include_router(member.router, tags=["Member"])
-
-
-@app.get("/ping")
-def pong():
-    return {"ping": "pong!"}
 
 
 # app.include_router(protected.router, tags=["Protected"])

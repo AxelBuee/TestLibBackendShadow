@@ -6,11 +6,13 @@ from models.models import (
     MemberUpdate,
     MemberReadWithCheckouts,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlmodel import Session, select
 from db import get_db
+from utils import VerifyToken
 
-router = APIRouter()
+auth = VerifyToken()
+router = APIRouter(dependencies=[Security(auth.verify, scopes=['write:author'])])
 
 
 @router.get("/members/", response_model=List[MemberRead])
@@ -23,7 +25,7 @@ async def get_all_members(session: Session = Depends(get_db)):
 async def get_member(member_id: int, session: Session = Depends(get_db)):
     db_member = session.get(Member, member_id)
     if not db_member:
-        raise HTTPException(status_code=404, detail="Member not found")
+        raise HTTPException(status_code=404, detail=f"Member id {member_id} not found")
     return db_member
 
 
@@ -42,7 +44,7 @@ async def update_member(
 ):
     db_member = session.get(Member, member_id)
     if not db_member:
-        raise HTTPException(status_code=404, detail="Member not found")
+        raise HTTPException(status_code=404, detail=f"Member id {member_id} not found")
     member_data = member.model_dump(exclude_unset=True)
     for key, value in member_data.items():
         setattr(db_member, key, value)
@@ -52,16 +54,16 @@ async def update_member(
     return db_member
 
 
-@router.delete("/member/{member_id}", response_model=MemberRead)
+@router.delete("/member/{member_id}", response_model=dict)
 async def delete_member(member_id: int, session: Session = Depends(get_db)):
     db_member = session.get(Member, member_id)
-    if db_member.member_checkouts:
+    if db_member and db_member.member_checkouts:
         raise HTTPException(
             status_code=404,
             detail="Member has checkouts. Please consider deactivating him instead.",
         )
     if not db_member:
-        raise HTTPException(status_code=404, detail="Member not found")
+        raise HTTPException(status_code=404, detail=f"Member id {member_id} not found")
     session.delete(db_member)
     session.commit()
-    return db_member
+    return {"message": f"Member id {db_member.id} deleted successfully"}
