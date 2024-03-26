@@ -13,7 +13,22 @@ from utils import VerifyToken
 
 auth = VerifyToken()
 
-router = APIRouter(dependencies=[Security(auth.verify, scopes=['write:author'])])
+router = APIRouter(dependencies=[Security(auth.verify, scopes=["admin"])])
+
+# Example of a route that requires a valid access token
+# @router.get("/api/private")
+# def private(auth_result: str = Security(auth.verify)):
+#     """A valid access token is required to access this route"""
+#     return auth_result
+
+# Example of a route that requires a valid access token and an appropriate scope
+# # , dependencies=[Security(auth.verify, scopes=['write:author'])]
+# @router.get("/api/private-scoped")
+# def private_scoped(auth_result: str = Security(auth.verify, scopes=["write:author"])):
+#     """A valid access token and an appropriate scope are required to access
+#     this route
+#     """
+#     return auth_result
 
 
 @router.get("/authors/", response_model=List[AuthorRead])

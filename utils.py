@@ -1,12 +1,9 @@
-from typing import Optional
-
 import jwt
+import requests
+from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import SecurityScopes, HTTPAuthorizationCredentials, HTTPBearer
-
 from config import get_settings
-
-import requests
 
 
 def get_token():
@@ -15,7 +12,8 @@ def get_token():
     client_id = config.client_id
     client_secret = config.client_secret
     audience = config.auth0_api_audience
-    username = "axel.buee@gmail.com"
+    username = "axel.buee@gmail.com"  # Admin user with admin role.
+    # username = "axel.buee+1@gmail.com"  # Basic user with member role.
     password = "Test1234!"
 
     # Get an access token using the password grant type
@@ -31,8 +29,7 @@ def get_token():
 
     response = requests.post(token_url, json=token_payload)
     access_token = response.json()["access_token"]
-
-    print("Access Token:", access_token)
+    return access_token
 
 
 class UnauthorizedException(HTTPException):

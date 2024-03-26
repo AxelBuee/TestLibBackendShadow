@@ -9,6 +9,9 @@ SQLModel is based on Python type annotations, and powered by Pydantic and SQLAlc
 Created by the same person who created FastAPI (@tiangolo): https://sqlmodel.tiangolo.com/
 """
 
+# Since Pydantic models are tricky to declare with circular dependencies when split into separate files,
+# I just put all the models in the same file.
+
 
 class AuthorBookLink(SQLModel, table=True):
     book_id: Optional[int] = Field(

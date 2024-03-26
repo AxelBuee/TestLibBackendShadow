@@ -12,7 +12,7 @@ from db import get_db
 from utils import VerifyToken
 
 auth = VerifyToken()
-router = APIRouter(dependencies=[Security(auth.verify, scopes=['write:author'])])
+router = APIRouter(dependencies=[Security(auth.verify, scopes=["admin"])])
 
 
 @router.get("/members/", response_model=List[MemberRead])

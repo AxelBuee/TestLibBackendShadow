@@ -16,7 +16,7 @@ from utils import VerifyToken
 
 
 auth = VerifyToken()
-router = APIRouter(dependencies=[Security(auth.verify, scopes=['write:author'])])
+router = APIRouter(dependencies=[Security(auth.verify, scopes=["admin"])])
 
 
 @router.get("/checkouts/", response_model=List[CheckoutRead])

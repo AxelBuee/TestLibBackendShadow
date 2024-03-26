@@ -13,7 +13,7 @@ from db import get_db
 from utils import VerifyToken
 
 auth = VerifyToken()
-router = APIRouter(dependencies=[Security(auth.verify, scopes=['write:author'])])
+router = APIRouter(dependencies=[Security(auth.verify, scopes=["admin"])])
 
 
 @router.get("/books/", response_model=List[BookRead])
@@ -83,7 +83,10 @@ async def delete_book(book_id: int, session: Session = Depends(get_db)):
     return {"message": f"Book id {db_book.id} deleted successfully"}
 
 
-@router.get("/books/search", response_model=List[BookRead])
+unsecure_router = APIRouter()
+
+
+@unsecure_router.get("/books/search", response_model=List[BookRead])
 async def search_books(
     title: str = None,
     publication_year: int = None,

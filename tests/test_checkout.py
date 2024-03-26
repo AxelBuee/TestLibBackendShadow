@@ -159,8 +159,8 @@ def test_delete_checkout_success(client, session):
     }
     checkout = session.get(Checkout, checkout_id)
     assert checkout == None
-    
-    
+
+
 def test_create_checkout_copy_not_available(client, session: Session):
     new_checkout = CheckoutCreate(
         checkout_date=date.today(),
@@ -173,8 +173,8 @@ def test_create_checkout_copy_not_available(client, session: Session):
     )
     assert response.status_code == 404
     assert response.json() == {"detail": "Copy id 2 is not available"}
-    
-    
+
+
 def test_create_checkout_membership_expired(client, session: Session):
     member_id = 1
     new_checkout = CheckoutCreate(
