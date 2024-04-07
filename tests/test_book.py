@@ -1,18 +1,20 @@
+import copy as cp
+import json
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlmodel import Session, SQLModel, create_engine, select
+
 from app import app
+from db import get_db
+from models.models import Book, BookCreate
+from routers.book import auth
 from setup import (
     create_authors_and_books,
-    create_members,
     create_checkouts,
     create_copies,
+    create_members,
 )
-from db import get_db
-from sqlmodel import create_engine, Session, SQLModel, select
-from models.models import BookCreate, Book
-import json
-import copy as cp
-from routers.book import auth
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 

@@ -1,5 +1,5 @@
-from functools import lru_cache
 import os
+from functools import lru_cache
 
 
 class Settings:
@@ -21,7 +21,11 @@ class Db_Settings:
         self.db_name = os.getenv("POSTGRES_DB")
 
     def get_db_uri(self):
-        return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+        uri = (
+            f"postgresql://{self.db_user}:{self.db_password}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
+        return uri
 
 
 @lru_cache()

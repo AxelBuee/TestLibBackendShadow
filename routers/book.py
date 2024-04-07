@@ -1,15 +1,17 @@
-from typing import List
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Security
+from sqlmodel import Session, col, extract, select
+
+from db import get_db
 from models.models import (
+    Author,
     Book,
     BookCreate,
     BookRead,
-    BookUpdate,
     BookReadWithAuthors,
-    Author,
+    BookUpdate,
 )
-from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlmodel import Session, select, extract
-from db import get_db
 from utils import VerifyToken
 
 auth = VerifyToken()
@@ -31,9 +33,14 @@ async def get_book(book_id: int, session: Session = Depends(get_db)):
 
 
 def _get_authors(session: Session, authors_ids: List[int]):
-    authors = session.exec(select(Author).filter(Author.id.in_(authors_ids))).all()
+    authors = session.exec(select(Author).filter(col(Author.id).in_(authors_ids))).all()
+
+    # utilise la len originale de authors_ids.
+    # Faire un count sur authors_ids puis comparer avec len(authors_ids).
+
     existing_authors_ids = {author.id for author in authors}
     missing_authors_ids = set(authors_ids) - existing_authors_ids
+
     if missing_authors_ids:
         raise HTTPException(
             status_code=404, detail=f"No author with ids {missing_authors_ids} found"
@@ -41,8 +48,8 @@ def _get_authors(session: Session, authors_ids: List[int]):
     return authors
 
 
-# I think it can be a good idea to force the user to provide the authors when creating a book
-# since a book always has at least one author.
+# I think it can be a good idea to force the user to provide the authors when creating a
+# book since a book always has at least one author.
 @router.post("/book/", response_model=BookRead)
 async def create_book(book: BookCreate, session: Session = Depends(get_db)):
     authors = _get_authors(session, book.authors_ids)
@@ -88,26 +95,26 @@ unsecure_router = APIRouter()
 
 @unsecure_router.get("/books/search", response_model=List[BookRead])
 async def search_books(
-    title: str = None,
-    publication_year: int = None,
-    isbn: str = None,
-    language: str = None,
-    author_name: str = None,
+    title: Optional[str] = None,
+    publication_year: Optional[int] = None,
+    isbn: Optional[str] = None,
+    language: Optional[str] = None,
+    author_name: Optional[str] = None,
     session: Session = Depends(get_db),
 ):
     query = select(Book)
     if title:
-        query = query.filter(Book.title.ilike(f"%{title}%"))
+        query = query.filter(col(Book.title).ilike(f"%{title}%"))
     if publication_year:
         query = query.filter(extract("year", Book.publication_date) == publication_year)
     if isbn:
         query = query.filter(Book.isbn == isbn)
     if language:
-        query = query.filter(Book.language.ilike(f"%{language}%"))
+        query = query.filter(col(Book.language).ilike(f"%{language}%"))
     if author_name:
         query = query.join(Book.authors).filter(
-            (Author.first_name.ilike(f"%{author_name}%"))
-            | (Author.last_name.ilike(f"%{author_name}%"))
+            (col(Author.first_name).ilike(f"%{author_name}%"))
+            | (col(Author.last_name).ilike(f"%{author_name}%"))
         )
     books = session.exec(query).all()
     return books

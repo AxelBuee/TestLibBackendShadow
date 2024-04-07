@@ -1,19 +1,21 @@
-from typing import List, Optional
-from sqlmodel import Field, Relationship, SQLModel
 from datetime import date
+from typing import List, Optional
+
+from sqlmodel import Field, Relationship, SQLModel
 
 """
-SQLModel is a library for interacting with SQL databases from Python code, with Python objects.
-It is designed to be intuitive, easy to use, highly compatible, and robust.
+SQLModel is a library for interacting with SQL databases from Python code, with Python
+objects. It is designed to be intuitive, easy to use, highly compatible, and robust.
 SQLModel is based on Python type annotations, and powered by Pydantic and SQLAlchemy.
-Created by the same person who created FastAPI (@tiangolo): https://sqlmodel.tiangolo.com/
+Created by the same person who created FastAPI (@tiangolo):
+https://sqlmodel.tiangolo.com/
 """
 
-# Since Pydantic models are tricky to declare with circular dependencies when split into separate files,
-# I just put all the models in the same file.
+# Since Pydantic models are tricky to declare with circular dependencies when split into
+# separate files, I just put all the models in the same file.
 
 
-class AuthorBookLink(SQLModel, table=True):
+class AuthorBookLink(SQLModel, table=True):  # type: ignore
     book_id: Optional[int] = Field(
         default=None, foreign_key="books.id", primary_key=True
     )
@@ -22,7 +24,7 @@ class AuthorBookLink(SQLModel, table=True):
     )
 
 
-########### Book ###########
+# ========= Book =========
 
 
 class BookBase(SQLModel):
@@ -33,7 +35,7 @@ class BookBase(SQLModel):
     language: str
 
 
-class Book(BookBase, table=True):
+class Book(BookBase, table=True):  # type: ignore
     __tablename__ = "books"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -66,7 +68,7 @@ class BookReadWithAuthors(BookRead):
     authors: List["AuthorRead"]
 
 
-########### Author ###########
+# ========= Author =========
 
 
 class AuthorBase(SQLModel):
@@ -77,7 +79,7 @@ class AuthorBase(SQLModel):
     nationality: str
 
 
-class Author(AuthorBase, table=True):
+class Author(AuthorBase, table=True):  # type: ignore
     __tablename__ = "authors"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -107,7 +109,7 @@ class AuthorReadWithBooks(AuthorRead):
     books: Optional[List["BookRead"]] = []
 
 
-########### Copy ###########
+# ========= Copy =========
 
 
 class CopyBase(SQLModel):
@@ -117,7 +119,7 @@ class CopyBase(SQLModel):
     book_id: int = Field(foreign_key="books.id", nullable=False)
 
 
-class Copy(CopyBase, table=True):
+class Copy(CopyBase, table=True):  # type: ignore
     __tablename__ = "copies"
     id: Optional[int] = Field(default=None, primary_key=True)
 
@@ -144,7 +146,7 @@ class CopyReadWithCheckouts(CopyRead):
     checkouts: Optional[List["CheckoutRead"]] = []
 
 
-########### Checkout ###########
+# ========= Checkout =========
 
 
 class CheckoutBase(SQLModel):
@@ -155,7 +157,7 @@ class CheckoutBase(SQLModel):
     copy_id: int = Field(foreign_key="copies.id", nullable=False)
 
 
-class Checkout(CheckoutBase, table=True):
+class Checkout(CheckoutBase, table=True):  # type: ignore
     __tablename__ = "checkouts"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -184,7 +186,7 @@ class CheckoutReadWithDetails(CheckoutRead):
     copy_item: "CopyRead"
 
 
-########### Member ###########
+# ========= Member =========
 
 
 class MemberBase(SQLModel):
@@ -197,7 +199,7 @@ class MemberBase(SQLModel):
     membership_expiration: date
 
 
-class Member(MemberBase, table=True):
+class Member(MemberBase, table=True):  # type: ignore
     __tablename__ = "members"
 
     id: Optional[int] = Field(default=None, primary_key=True)

@@ -1,19 +1,21 @@
+import copy as cp
+import json
+from datetime import date
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlmodel import Session, SQLModel, col, create_engine, select
+
 from app import app
+from db import get_db
+from models.models import Member, MemberCreate
+from routers.member import auth
 from setup import (
     create_authors_and_books,
-    create_members,
     create_checkouts,
     create_copies,
+    create_members,
 )
-from db import get_db
-from sqlmodel import create_engine, Session, SQLModel, select
-from models.models import MemberCreate, Member
-import json
-import copy as cp
-from datetime import date
-from routers.member import auth
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -56,7 +58,7 @@ def client(session):
     yield TestClient(app)
 
 
-def test_get_member_success(client):
+def test_get_member_success(client: TestClient):
     response = client.get("/member/1")
     assert response.status_code == 200
     assert response.json() == {
@@ -81,7 +83,7 @@ def test_get_member_success(client):
     }
 
 
-def test_create_member_success(client, session: Session):
+def test_create_member_success(client: TestClient, session: Session):
     new_member = MemberCreate(
         auth0_id="cc23e_ae873_a123b",
         first_name="TestFirstName",
@@ -116,7 +118,7 @@ def test_create_member_success(client, session: Session):
     assert member.membership_expiration == new_member.membership_expiration
 
 
-def test_update_member_success(client, session):
+def test_update_member_success(client: TestClient, session: Session):
     member_id = 2
     member_before_update = session.get(Member, member_id)
     member_before_update = cp.deepcopy(member_before_update)
@@ -146,17 +148,17 @@ def test_update_member_success(client, session):
     assert member.membership_expiration != member_before_update.membership_expiration
 
 
-def test_delete_member_success(client, session):
+def test_delete_member_success(client: TestClient, session: Session):
     member_id = 3
-    x = session.exec(select(Member).filter(~Member.member_checkouts.any())).one()
+    x = session.exec(select(Member).filter(~col(Member.member_checkouts).any())).one()
     response = client.delete(f"/member/{x.id}")
     assert response.status_code == 200
     assert response.json() == {"message": f"Member id {member_id} deleted successfully"}
     member = session.get(Member, member_id)
-    assert member == None
+    assert member is None
 
 
-def test_create_member_missing_field(client):
+def test_create_member_missing_field(client: TestClient):
     new_member = {
         "first_name": "Miss",
         "last_name": "Ingfield",
@@ -187,14 +189,14 @@ def test_create_member_missing_field(client):
     }
 
 
-def test_update_nonexistent_member(client):
+def test_update_nonexistent_member(client: TestClient):
     updated_member_data = {"returned_date": date.today().isoformat()}
     response = client.put("/member/999", json=updated_member_data)
     assert response.status_code == 404
     assert response.json()["detail"] == "Member id 999 not found"
 
 
-def test_delete_nonexistent_member(client):
+def test_delete_nonexistent_member(client: TestClient):
     response = client.delete("/member/999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Member id 999 not found"}

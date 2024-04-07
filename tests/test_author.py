@@ -1,19 +1,21 @@
+import copy as cp
+import json
+from datetime import date
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlmodel import Session, SQLModel, create_engine, select
+
 from app import app
+from db import get_db
+from models.models import Author, AuthorCreate, Book
+from routers.author import auth
 from setup import (
     create_authors_and_books,
-    create_members,
     create_checkouts,
     create_copies,
+    create_members,
 )
-from db import get_db
-from sqlmodel import create_engine, Session, SQLModel, select
-from models.models import AuthorCreate, Author, Book
-import json
-import copy as cp
-from datetime import date
-from routers.author import auth
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -21,6 +23,8 @@ engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 TestingSessionLocal = Session(autocommit=False, autoflush=False, bind=engine)
+
+# conftest.py pour setup les fixtures communes à tous les tests
 
 
 @pytest.fixture()

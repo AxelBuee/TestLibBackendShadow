@@ -1,8 +1,8 @@
-from psycopg2 import OperationalError
-
-from sqlmodel import create_engine, SQLModel, Session
-from config import Db_Settings
 from dotenv import load_dotenv
+from psycopg2 import OperationalError
+from sqlmodel import Session, SQLModel, create_engine
+
+from config import Db_Settings
 
 load_dotenv()
 
@@ -15,6 +15,8 @@ try:
     print("Connected to the database.")
 except OperationalError as e:
     print("Failed to connect to the database:", e)
+
+# Penser à fermer le engine après utilisation
 
 
 def get_db():

@@ -1,15 +1,17 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from utils import get_token
-from routers import author, book, checkout, copy, member
+
 from db import create_db_and_tables, delete_db_and_tables, engine
+from routers import author, book, checkout, copy, member
 from setup import (
     create_authors_and_books,
-    create_members,
-    create_copies,
     create_checkouts,
+    create_copies,
+    create_members,
 )
+from utils import get_token
 
+# Installer flake8 et mypy
 load_dotenv()
 app = FastAPI(title="Shadow library API")
 get_token()

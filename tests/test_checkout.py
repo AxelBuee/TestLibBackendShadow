@@ -1,19 +1,21 @@
+import copy as cp
+import json
+from datetime import date, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlmodel import Session, SQLModel, create_engine, select
+
 from app import app
+from db import get_db
+from models.models import Checkout, CheckoutCreate, Copy
+from routers.checkout import auth
 from setup import (
     create_authors_and_books,
-    create_members,
     create_checkouts,
     create_copies,
+    create_members,
 )
-from db import get_db
-from sqlmodel import create_engine, Session, SQLModel, select
-from models.models import CheckoutCreate, Checkout, Copy
-import json
-import copy as cp
-from datetime import date, timedelta
-from routers.checkout import auth
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -147,7 +149,7 @@ def test_update_checkout_success(client, session):
 
     # Check if copy is available after the book is returned
     copy: Copy = session.get(Copy, checkout.copy_id)
-    assert copy.is_available == True
+    assert copy.is_available
 
 
 def test_delete_checkout_success(client, session):
@@ -158,7 +160,7 @@ def test_delete_checkout_success(client, session):
         "message": f"Checkout id {checkout_id} deleted successfully"
     }
     checkout = session.get(Checkout, checkout_id)
-    assert checkout == None
+    assert checkout is None
 
 
 def test_create_checkout_copy_not_available(client, session: Session):
@@ -193,12 +195,15 @@ def test_create_checkout_membership_expired(client, session: Session):
 def test_delete_checkout_not_returned(client, session):
     checkout_id = 2
     checkout = session.get(Checkout, checkout_id)
-    assert checkout.returned_date == None
+    assert checkout.returned_date is None
 
     response = client.delete(f"/checkout/{checkout_id}")
     assert response.status_code == 404
     assert response.json() == {
-        "detail": f"Checkout id {checkout_id} is not returned. Please make sure the book was returned before deleting the checkout"
+        "detail": (
+            f"Checkout id {checkout_id} is not returned. "
+            f"Please make sure the book was returned before deleting the checkout"
+        )
     }
 
 

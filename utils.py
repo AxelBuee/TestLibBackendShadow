@@ -1,8 +1,10 @@
+from typing import Optional
+
 import jwt
 import requests
-from typing import Optional
 from fastapi import Depends, HTTPException, status
-from fastapi.security import SecurityScopes, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
+
 from config import get_settings
 
 

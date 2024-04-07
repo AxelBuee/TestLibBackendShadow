@@ -1,16 +1,17 @@
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Security
+from sqlmodel import Session, select
+
+from db import get_db
 from models.models import (
     Book,
     Copy,
-    CopyBase,
     CopyCreate,
     CopyRead,
-    CopyUpdate,
     CopyReadWithCheckouts,
+    CopyUpdate,
 )
-from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlmodel import Session, select
-from db import get_db
 from utils import VerifyToken
 
 auth = VerifyToken()

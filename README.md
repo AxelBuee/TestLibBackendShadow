@@ -1,11 +1,11 @@
 # Consignes
-Dans le cadre de la modernisation de son système d'information, la bibliothèque municipale vous demande de concevoir un système de gestion de son stock de livres. Afin de pouvoir gérer correctement cette bibliothèque, les utilisateurs du système doivent pouvoir : 
+Dans le cadre de la modernisation de son système d'information, la bibliothèque municipale vous demande de concevoir un système de gestion de son stock de livres. Afin de pouvoir gérer correctement cette bibliothèque, les utilisateurs du système doivent pouvoir :
 
 - Ajouter, Modifier et Supprimer les auteurs
 - Ajouter, Modifier et Supprimer les livres
 - Gérer les emprunts de livres et le stock de livres
 
- 
+
 
 L’utilisation de l’application se fera via une API REST que vous implémenterez en suivant les best-practices.
 
@@ -13,7 +13,7 @@ Pour cet exercice aucune programmation HTML/CSS/JS n’est attendue, le système
 
 En plus du code source Python 3, vous fournirez un dump de la base de données permettant de tester l’application, ainsi qu’un schéma UML au format png/jpeg justifiant l’implémentation de l'application proposée.
 
-Bonus : 
+Bonus :
 - Fournir un fichier docker-compose et ses fichiers dépendants avec votre code source permettant le test et le déploiement rapide de votre application et des différents composants.
 - Endpoint de recherche d’un livre
 - Gestion de l’authentification
@@ -38,11 +38,11 @@ To make sure everyting went well, you can run the tests inside the container:
 docker compose exec fastapi-library-backend pytest . -vv
 ```
 
-You should now have a working enviroment deployed with the FastAPI app and a working postgres database. 
+You should now have a working enviroment deployed with the FastAPI app and a working postgres database.
 
 You can access the swagger UI on the following address: http://localhost:8000/docs#/
 
-For a production deployment, some more configuration to the docker-compose.yml files will be necessary. 
+For a production deployment, some more configuration to the docker-compose.yml files will be necessary.
 
 ## Credentials
 **Ideally, the env variables provided in the .env file would be stored in Gitlab Secrets or something similar.**
@@ -74,10 +74,11 @@ Afin de ne pas gérer les crédentials des utilisateurs moi-même, j'ai fait le 
 
 J'ai créé sur Auth0 2 users, 1 admin et 1 member. Toutes les routes API sont protégées et accessibles uniquement par les **admins**. La seule exception étant la route `search_books(...)` qui est accessible par tous. Je pense que même des personnes n'étant pas membres peuvent être intéressé de savoir si le livre qu'ils veulent lire est disponible dans cette bibliothèque.
 
+## Schema
+![Database Schema](/images/db_schema_visual.png)
+
 ## Choix de conception de la base de données
 
-### Schema
-![Database Schema](/images/db_schema_visual.png)
 Pour l'architecture de la base j'ai décidé de créer les tables suivantes. Je n'ai ajouté que les champs qui me sont venus à l'esprit mais des conditions professionnelles j'aurais passé un moment à mieux définir le périmètre et les valeurs nécessaires pour le client.
 
 - **Members**: _Contient les membres qui se sont inscrits à la bibliothèque. On y trouve certaines informations comme le prénom, le nom de famille, l'id venant de auth0, la date d'expiration de la carte de bibliothèque,.._
@@ -87,12 +88,12 @@ Pour l'architecture de la base j'ai décidé de créer les tables suivantes. Je 
 - **Copies**: _Contient les exemplaires créés. Par exemplaire j'entends, la version physique du livre. On pourra donc avoir 2 exemplaires du livre 'Twilight 1' par exemple. On y retrouve, le codebarre qui est souvent ajouté par les bibliothèques, si l'exemplaire est disponible ou non..._
 - **Checkouts**: _Contient les emprunts créés. Lorsqu'un membre emprunte un livre, l'exemplaire passera en non-disponible et une nouvelle entrée dans la table sera ajoutée. On y retrouve la date d'emprunt, la date maximale de rendu autorisée et la date de retour._
 
-### Prises de décision
+## Prises de décision
 - Un livre ne peut pas être créé sans auteurs.
 - Un membre ne peut pas être supprimé s'il a déjà emprunté un livre, afin de conserver l'historique des emprunts.
 - Un emprunt ne peut pas être supprimé tant que l'exemplaire n'a pas été restitué.
 
 **Merci de ne pas vous attarder sur le contenu des données de test. Une partie à été générée de façon aléatoire et ne fait pas forcément sens.**
 
-### Facteurs limitants et évolutivité
+## Facteurs limitants et évolutivité
 La principale limitation en termes d'évolutivité serait la table des emprunts, qui pourrait devenir très volumineuse avec le temps. Une stratégie d'archivage des emprunts anciens et une gestion efficace de la table permettraient de garantir la performance et l'évolutivité du système.

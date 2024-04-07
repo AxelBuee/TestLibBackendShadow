@@ -1,19 +1,20 @@
+from datetime import date
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Security
+from sqlmodel import Session, select
+
+from db import get_db
 from models.models import (
     Checkout,
     CheckoutCreate,
     CheckoutRead,
-    CheckoutUpdate,
     CheckoutReadWithDetails,
+    CheckoutUpdate,
     Copy,
     Member,
 )
-from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlmodel import Session, select
-from db import get_db
-from datetime import date
 from utils import VerifyToken
-
 
 auth = VerifyToken()
 router = APIRouter(dependencies=[Security(auth.verify, scopes=["admin"])])
@@ -66,6 +67,10 @@ async def create_checkout(checkout: CheckoutCreate, session: Session = Depends(g
     return db_checkout
 
 
+# Patch pour update partiellement une ressource au lieu de PUT.
+# Layout flat et layout src.
+
+
 @router.put("/checkout/{checkout_id}", response_model=CheckoutRead)
 async def update_checkout(
     checkout_id: int, checkout: CheckoutUpdate, session: Session = Depends(get_db)
@@ -78,7 +83,7 @@ async def update_checkout(
     checkout_data = checkout.model_dump(exclude_unset=True)
     for key, value in checkout_data.items():
         setattr(db_checkout, key, value)
-    if checkout.returned_date <= date.today():
+    if checkout.returned_date and checkout.returned_date <= date.today():
         db_checkout.copy_item.is_available = True
     session.add(db_checkout)
     session.commit()
@@ -96,7 +101,10 @@ async def delete_checkout(checkout_id: int, session: Session = Depends(get_db)):
     if not db_checkout.returned_date:
         raise HTTPException(
             status_code=404,
-            detail=f"Checkout id {checkout_id} is not returned. Please make sure the book was returned before deleting the checkout",
+            detail=(
+                f"Checkout id {checkout_id} is not returned. "
+                f"Please make sure the book was returned before deleting the checkout"
+            ),
         )
     session.delete(db_checkout)
     session.commit()
